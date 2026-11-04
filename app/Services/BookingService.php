@@ -10,7 +10,8 @@ use App\Models\EventTicketType;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-
+use App\Events\BookingConfirmed;
+use App\Exceptions\InvalidBookingStatusException;
 class BookingService
 {
     public function create(User $customer, int $eventId, array $tickets): Booking
@@ -83,7 +84,7 @@ class BookingService
                 ->delay(now()->addMinutes(10));
 
             return $booking->load('tickets');
-        }, 3);
+        });
     }
 
     private function ensureCapacity(
@@ -115,5 +116,28 @@ class BookingService
         }
 
         return $totalPrice;
+    }
+
+
+
+    public function paid(Booking $booking){
+        $this->checkStatus($booking);
+        return DB::transaction(function () use ($booking) {
+            $booking = Booking::query()->lockForUpdate()->findOrFail($booking->id);
+            
+            // محاكاة للدفع (فقط تغيير الحالة)
+            $booking->update([
+                'status' => BookingStatus::PAID->value,
+            ]);
+
+            BookingConfirmed::dispatch($booking->id);
+
+            return $booking->load('tickets');
+        });
+    }
+    private function checkStatus(Booking $booking){
+        if($booking->status !== BookingStatus::PENDING->value){
+            throw new InvalidBookingStatusException('You cannot pay for this booking in its current status.');   
+        }
     }
 }
