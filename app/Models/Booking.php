@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use App\Enums\BookingStatus;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class Booking extends Model
 {
@@ -34,7 +35,7 @@ class Booking extends Model
         return $this->hasMany(Ticket::class);
     }
 
-    public function organizer(): BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
