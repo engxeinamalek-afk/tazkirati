@@ -6,11 +6,14 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-
+use Throwable;
+use Illuminate\Support\Facades\Log;
 class EventCancelledNotification extends Notification implements ShouldQueue
 {
     use Queueable;
-
+    public $tries=3;
+    public $timeout=60;
+    public function backoff():array{return [30,60];}
     /**
      * Create a new notification instance.
      */
@@ -41,5 +44,12 @@ class EventCancelledNotification extends Notification implements ShouldQueue
             'title' => "Event Cancelled",
             'message' => "The event '{$this->eventTitle}' that you participated in has been cancelled.",
         ];
+    }
+    public function failed(?Throwable $exception): void
+    {
+        Log::error('Send Cancellation Email job failed', [
+            'event_title' => $this->eventTitle,
+            'error' => $exception?->getMessage(),
+        ]);
     }
 }

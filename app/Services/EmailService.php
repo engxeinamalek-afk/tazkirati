@@ -15,7 +15,7 @@ class EmailService
                             $booking->user->email,
                             $subject,
                             $body
-                        )->onQueue('emails');
+                        );
                     }
             });
     }

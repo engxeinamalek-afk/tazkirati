@@ -5,8 +5,7 @@ namespace App\Listeners;
 use App\Events\BookingConfirmed;
 use App\Models\Booking;
 use App\Notifications\NewBookingNotification;
-use Illuminate\Contracts\Queue\ShouldQueue;
-class SendConfirmationNotification implements ShouldQueue
+class SendConfirmationNotification
 {
     /**
      * Create the event listener.
