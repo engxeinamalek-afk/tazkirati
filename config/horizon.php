@@ -214,17 +214,69 @@ return [
 
     'environments' => [
         'production' => [
-            'supervisor-1' => [
+            'supervisor-high' => [
+                'connection' => 'redis',
+                'queue' => ['high'],
+                'balance' => 'auto',
+                'minProcesses' => 4,
                 'maxProcesses' => 10,
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
+                'tries' => 5,
+                'timeout' => 60,
+            ],
+
+            'supervisor-default' => [
+                'connection' => 'redis',
+                'queue' => ['default'],
+                'balance' => 'auto',
+                'minProcesses' => 4,
+                'maxProcesses' => 16,
+                'tries' => 5,
+                'timeout' => 60,
+            ],
+
+            'supervisor-emails' => [
+                'connection' => 'redis',
+                'queue' => ['emails'],
+                'balance' => 'auto',
+                'minProcesses' => 2,
+                'maxProcesses' => 8,
+                'tries' => 3,
+                'timeout' => 60,
             ],
         ],
 
         'local' => [
-            'supervisor-1' => [
+
+            'supervisor-high' => [
+                'connection' => 'redis',
+                'queue' => ['high'],
+                'balance' => 'auto',
+                'minProcesses' => 1,
                 'maxProcesses' => 3,
+                'tries' => 5,
+                'timeout' => 60,
             ],
+
+            'supervisor-default' => [
+                'connection' => 'redis',
+                'queue' => ['default'],
+                'balance' => 'auto',
+                'minProcesses' => 1,
+                'maxProcesses' => 3,
+                'tries' => 5,
+                'timeout' => 60,
+            ],
+
+            'supervisor-emails' => [
+                'connection' => 'redis',
+                'queue' => ['emails'],
+                'balance' => 'auto',
+                'minProcesses' => 1,
+                'maxProcesses' => 2,
+                'tries' => 3,
+                'timeout' => 60,
+            ],
+
         ],
     ],
 

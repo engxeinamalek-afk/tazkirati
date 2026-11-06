@@ -13,7 +13,13 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
+    'mail' => [
+        'simulate_failure' => env('MAIL_SIMULATE_FAILURE', false),
+    ],
 
+    'sms' => [
+        'simulate_failure' => env('SMS_SIMULATE_FAILURE', false),
+    ],
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
