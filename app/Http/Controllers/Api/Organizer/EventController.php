@@ -6,6 +6,7 @@ use App\Enums\EventStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEventRequest;
 use App\Models\Event;
+use App\Models\Scopes\PublishedScope;
 use App\Services\EventService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
@@ -53,5 +54,14 @@ class EventController extends Controller
             'message' => 'تم إلغاء الفعالية وإشعار أصحاب الحجوزات.',
             'event' => $event,
         ]);
+    }
+    public function index(){
+        $organizer= auth()->user();
+        $events= $organizer->events()
+                ->withoutGlobalScope(PublishedScope::class)
+                ->select('id', 'organizer_id', 'title', 'status','venue_id')
+                ->with('venue:id,name')
+                ->paginate(10);
+        return $events;
     }
 }
