@@ -2,10 +2,12 @@
 
 namespace App\Exceptions;
 
+use App\Traits\ApiResponse;
 use Exception;
 
 abstract class BaseApiException extends Exception
 {
+    use ApiResponse;
     /**
      * كود حالة HTTP الافتراضي
      */
@@ -45,10 +47,6 @@ abstract class BaseApiException extends Exception
 
     public function render($request)
     {
-        return response()->json([
-            'success' => false,
-            'message' => $this->getMessage(),
-            'errors'  => $this->getErrors(),
-        ], $this->statusCode);
+        return $this->errorResponse($this->getMessage(), $this->getErrors(), $this->statusCode);
     }
 }
