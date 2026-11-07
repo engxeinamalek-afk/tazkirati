@@ -7,8 +7,11 @@ use Illuminate\Http\Request;
 use App\Http\Requests\SendEmailRequest;
 use App\Models\Event;
 use App\Services\EmailService;
+use App\Traits\ApiResponse;
+
 class EventNotificationController extends Controller
 {
+    use ApiResponse;
     public function sendEmail(SendEmailRequest $request, Event $event,EmailService $service)
     {
         $validatedData = $request->validated();
@@ -17,7 +20,6 @@ class EventNotificationController extends Controller
 
         $service->sendEmail($event, $subject, $body);
 
-
-        return response()->json(['message' => 'Promotional email is being sent.'], 200);
+        return $this->successResponse(message:'Promotional email is being sent.');
     }
 }

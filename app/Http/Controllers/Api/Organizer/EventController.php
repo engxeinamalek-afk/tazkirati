@@ -5,14 +5,16 @@ namespace App\Http\Controllers\Api\Organizer;
 use App\Enums\EventStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEventRequest;
+use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Models\Scopes\PublishedScope;
 use App\Services\EventService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
-
+use App\Traits\ApiResponse;
 class EventController extends Controller
 {
+    use ApiResponse;
     public function store(StoreEventRequest $request)
     {
         $validatedData = $request->validated();
@@ -20,10 +22,7 @@ class EventController extends Controller
 
         $event = Event::create($validatedData);
 
-        return response()->json([
-            'message' => 'Event created successfully',
-            'event' => $event,
-        ], 201);
+        return $this->successResponse(new EventResource($event),"Event created successfully",201);
     }
 
     public function updateStatus(Event $event)
@@ -32,15 +31,9 @@ class EventController extends Controller
         
         $event->update(['status' => EventStatus::PUBLISHED->value]);
         if ($event->wasChanged('status')) {
-            return response()->json([
-                'message' => 'Event status updated successfully',
-                'event' => $event,
-            ], 200);
+            return $this->successResponse($event, "Event status updated successfully");
         } else {
-            return response()->json([
-                'message' => 'Event status is already published',
-                'event' => $event,
-            ], 200);
+            return $this->successResponse(new EventResource($event), 'Event status is already published');
         }
     }
 
@@ -50,10 +43,7 @@ class EventController extends Controller
 
         $event = $eventService->cancel($event);
 
-        return response()->json([
-            'message' => 'تم إلغاء الفعالية وإشعار أصحاب الحجوزات.',
-            'event' => $event,
-        ]);
+        return $this->successResponse(new EventResource($event), "Cancel event done successfully");
     }
     public function index(){
         $organizer= auth()->user();
@@ -62,6 +52,15 @@ class EventController extends Controller
                 ->select('id', 'organizer_id', 'title', 'status','venue_id')
                 ->with('venue:id,name')
                 ->paginate(10);
-        return $events;
+        return $this->successResponse(data: [
+            'events' => EventResource::collection($events),
+            'links' => [
+                        'current_page' => $events->currentPage(),
+                        'next_page'    => $events->nextPageUrl(),
+                        'prev_page'    => $events->previousPageUrl(),
+                        'total_pages'  => $events->lastPage(),
+                        'total_properties' => $events->total()
+            ]
+        ], message:"Events retrieved successfully!");
     }
 }
