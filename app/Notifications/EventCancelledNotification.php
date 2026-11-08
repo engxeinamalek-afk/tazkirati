@@ -19,7 +19,7 @@ class EventCancelledNotification extends Notification implements ShouldQueue
      */
     public function __construct(protected string $eventTitle)
     {
-        //
+        $this->queue='default';
     }
 
     /**

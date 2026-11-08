@@ -2,17 +2,22 @@
 
 namespace App\Notifications;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Throwable;
 use Illuminate\Support\Facades\Log;
 
-class NewBookingNotification extends Notification
+class NewBookingNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
     public $tries=3;
     public $timeout=30;
     public function backoff():array{return [30,60];}
     
-    public function __construct(public readonly int $bookingId) {}
+    public function __construct(public readonly int $bookingId) {
+        $this->queue = 'default';
+    }
 
     public function via(object $notifiable): array
     {

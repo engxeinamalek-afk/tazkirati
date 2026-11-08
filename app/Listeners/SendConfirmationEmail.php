@@ -36,7 +36,7 @@ class SendConfirmationEmail implements ShouldQueue
         if(config('services.mail.simulate_failure')){
             throw new RuntimeException("Simulated email failure");
         }else{
-            $booking = Booking::with('user:name,email')->findOrFail($event->bookingId);
+            $booking = Booking::with('user:id,name,email')->findOrFail($event->bookingId);
 
             Mail::raw("Hello {$booking->user->name}, your booking has been confirmed. Booking ID: {$booking->id}", function ($message) use ($booking) {
                 $message->to($booking->user->email)
@@ -45,10 +45,13 @@ class SendConfirmationEmail implements ShouldQueue
         }
 
     }
-    public function failed(Throwable $exception){     
+    public function failed(BookingConfirmed $event, Throwable $exception): void
+    {
+        $this->bookingId = $event->bookingId;
+
         Log::error('Confirmation Email failure', [
             'booking_id' => $this->bookingId,
-            'exception' => $exception?->getMessage(),
+            'exception' => $exception->getMessage(),
         ]);
     }
 }

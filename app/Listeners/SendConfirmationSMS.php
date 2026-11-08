@@ -33,13 +33,16 @@ class SendConfirmationSMS implements ShouldQueue
     {
         $this->bookingId= $event->bookingId;
 
-        $booking = Booking::with('user:phone')->findOrFail($event->bookingId);
+        $booking = Booking::with('user:id,phone')->findOrFail($event->bookingId);
         $this->service->send($booking->user->phone, "Your booking has been confirmed. Booking ID: {$booking->id}");
     }
-    public function failed(Throwable $exception){
+    public function failed(BookingConfirmed $event, Throwable $exception): void
+    {
+        $this->bookingId = $event->bookingId;
+
         Log::error('Send Confirmation SMS job failed', [
             'booking_id' => $this->bookingId,
-            'exception' => $exception?->getMessage(),
+            'exception' => $exception->getMessage(),
         ]);
     }
 }
