@@ -1,59 +1,87 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Tathkirati
+Laravel API for event ticketing system.
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Event Handling & Queues Workflow
 
-## About Laravel
+### BookingConfirmed Event
+When the **`BookingConfirmed`** event is dispatched, the following listeners are triggered:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+* **Queued Listeners (Medium Priority - `default` Queue):**
+  * **`MakeQRCode`**, **`SendConfirmationSMS`**, and **`SendConfirmationEmail`** run asynchronously in the background because they are time-consuming operations.
+  * Each of these listeners is configured with a **maximum of 3 retry attempts** in case of failure.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+* **Immediate Listener (Instant Execution):**
+  * **`SendConfirmationNotification`** executes instantly to trigger the notification system.
+  * The resulting notifications are handled via the **`default` queue** with **3 retry attempts**, as the underlying notification class itself is queued.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-## Learning Laravel
+### EventCancelled Event
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+When the **`EventCancelled`** event is dispatched, all its listeners (**`CacheBack`**, **`SendCancelledEmail`**, **`SendCancelledNotification`**, and **`SendCancelledSMS`**) execute `instantly`. They immediately dispatch background jobs into specific queues to prevent processing bottlenecks (e.g., avoiding sending multiple emails sequentially within the same listener).
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+The workflow details are as follows:
 
-## Laravel Sponsors
+* **`CacheBack` (High Priority):**
+  * Dispatches **`CacheBackJob`** into the **`high` queue** because it is a critical operation.
+  * Configured with **3 retry attempts**.
+  * On final failure, it automatically sends an alert notification to the system admins.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+* **Queued Jobs (Medium Priority - `default` Queue):**
+  * **`SendCancelledEmail`** dispatches **`SendCancelledEmailJob`** to handle email delivery in the background.
+  * **`SendCancelledSMS`** dispatches **`SendCancellationSmsJob`** to handle SMS sending asynchronously.
+  * **`SendCancelledNotification`** dispatches **`EventCancelledNotification`** to queue user notifications.
+  * All these jobs run in the background because they are time-consuming.
 
-### Premium Partners
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Delayed Background Job
 
-## Contributing
+* **`ExpirePendingBooking` (High Priority):**
+  * Dispatched with a **10-minute delay** immediately after a booking is initiated.
+  * Checks if the payment is completed; if not, it automatically releases and cancels the pending reservation.
+  * Runs on the **`high` queue** due to its critical role in managing seat inventory.
+  * Configured with **3 retry attempts**.
+  * On final failure, it logs the error and sends an alert notification to system admins.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Batch Email Processing (Promotional Campaigns)
 
-## Code of Conduct
+* **`SendPromotionalEmail` (Targeted Marketing Job):**
+  * **Memory-Efficient Data Chunking:** Iterates over all users who have existing bookings by loading records in chunks using Laravel's `chunkById()`. This prevents memory exhaustion and optimizes database query performance.
+  * **Dedicated Queue Routing:** Dispatched exclusively onto the **`emails` queue** to isolate heavy email delivery traffic and prevent it from bottlenecking other system-critical workflows.
+  * **Fault Tolerance:** Configured with a **maximum of 2 retry attempts** to handle temporary mail server failures gracefully.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Queue Behavior on Code Updates
 
-## Security Vulnerabilities
+Queue workers load code into memory. When adding a new listener or updating a job, they will **not** recognize the changes automatically.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+To apply updates, you must restart the queue: `php artisan queue:restart`
 
-## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Queue Management (Redis, Horizon & Commands)
+
+This project uses **Redis** as the queue driver and **Laravel Horizon** for monitoring.
+
+### 1. Setup
+Set the queue connection in your `.env` file:   `QUEUE_CONNECTION=redis`
+Run Horizon to start processing jobs:   `php artisan horizon`
+
+### 2. Essential Commands
+* **List failed jobs:** `php artisan queue:failed`
+* **Retry all failed jobs:** `php artisan queue:retry all`
+* **Retry specific job:** `php artisan queue:retry [job_id]`
+* **Clear all failed jobs:** `php artisan queue:flush`
+* **Clear a specific queue (Horizon):** `php artisan horizon:clear`
+
+> **Tip for Testing Failures:** 
+> To test how the system handles failed jobs and retries for emails or SMS, switch these variables to `true` in your `.env` file:
+> ```env
+> MAIL_SIMULATE_FAILURE=true
+> SMS_SIMULATE_FAILURE=true
+> ```
+
+
+
+
+
+
+
+
