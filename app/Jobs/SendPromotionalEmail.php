@@ -18,9 +18,9 @@ class SendPromotionalEmail implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(private string $email, private string $subject, private string $body){}
-    public function viaQueue(){
-        return 'emails';
+    public function __construct(private string $email, private string $subject, private string $body)
+    {
+        $this->onQueue('emails');
     }
 
     /**

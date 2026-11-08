@@ -22,6 +22,11 @@ class Booking extends Model
         'status',
     ];
 
+    public function casts(){
+        return [
+            'status' => BookingStatus::class,
+        ];
+    }
     public function scopeReservingSeats(Builder $query): void
     {
         $query->whereIn('status', [
