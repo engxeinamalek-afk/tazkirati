@@ -1,0 +1,207 @@
+{
+  "info": {
+    "_postman_id": "b957737b-bad5-4348-b73b-d00bde774251",
+    "name": "Tathkirati",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "54164966",
+    "_collection_link": "https://go.postman.co/collection/54164966-b957737b-bad5-4348-b73b-d00bde774251?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "An organizer canceling an event they don't own",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Store booking",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "customer_token_secret",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"event_id\": 1,\r\n    \"tickets\": [\r\n        {\r\n            \"type\": \"vip\",\r\n            \"quantity\": 2\r\n        },\r\n        {\r\n            \"type\": \"normal\",\r\n            \"quantity\": 5\r\n        }\r\n    ]\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/customer/bookings",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "customer",
+            "bookings"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Pay for booking",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "customer_token_secret",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"event_id\": 1,\r\n    \"tickets\": [\r\n        {\r\n            \"type\": \"vip\",\r\n            \"quantity\": 2\r\n        },\r\n        {\r\n            \"type\": \"normal\",\r\n            \"quantity\": 5\r\n        }\r\n    ]\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/customer/bookings/2160/pay",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "customer",
+            "bookings",
+            "2160",
+            "pay"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Purchase limit exceeded",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "customer_token_secret",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"event_id\": 1,\r\n    \"tickets\": [\r\n        {\r\n            \"type\": \"vip\",\r\n            \"quantity\": 4\r\n        },\r\n        {\r\n            \"type\": \"normal\",\r\n            \"quantity\": 5\r\n        }\r\n    ]\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/customer/bookings",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "customer",
+            "bookings"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Store cancalled booking",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "customer_token_secret",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"event_id\": 2,\r\n    \"tickets\": [\r\n        {\r\n            \"type\": \"vip\",\r\n            \"quantity\": 2\r\n        },\r\n        {\r\n            \"type\": \"normal\",\r\n            \"quantity\": 5\r\n        }\r\n    ]\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/customer/bookings",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "customer",
+            "bookings"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Send emails",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    }
+  ]
+}
