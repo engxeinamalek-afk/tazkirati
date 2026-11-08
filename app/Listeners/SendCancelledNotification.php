@@ -7,12 +7,16 @@ use App\Models\User;
 use App\Jobs\SendAdminNotificationJob;
 use App\Events\EventCancelled;
 use App\Notifications\EventCancelledNotification;
+use App\Models\Scopes\PublishedScope;
 use Illuminate\Support\Facades\Notification;
+
 class SendCancelledNotification
 {
     public function handle(EventCancelled $event)
     {
-        $eventDetails = Event::select('id', 'title')->findOrFail($event->eventId);
+        $eventDetails = Event::withoutGlobalScope(PublishedScope::class)
+            ->select('id', 'title')
+            ->findOrFail($event->eventId);
 
         $admins = User::select('id')
             ->where('role', 'admin') 

@@ -6,7 +6,10 @@ use App\Events\EventCancelled;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Jobs\CacheBackJob;
+use App\Models\Booking;
 use App\Models\Event;
+use App\Models\Scopes\PublishedScope;
+use Illuminate\Support\Facades\DB;
 class CacheBack
 {
     /**
@@ -22,16 +25,15 @@ class CacheBack
      */
     public function handle(EventCancelled $event): void
     {
-        $eventData = Event::select('id', 'title')
-                    ->with(['bookings' => function ($query) {
-                            $query->select('id', 'user_id', 'event_id', 'status')
-                                ->where('status', 'paid');
-                            }])
-                    ->find($event->eventId);
-        $bookings = $eventData->bookings;
+        $bookings = Booking::select('id', 'user_id', 'event_id', 'status')
+            ->where('event_id', $event->eventId)
+            ->where('status', 'paid')
+            ->get();
         foreach($bookings as $booking){
             CacheBackJob::dispatch($booking);
         }
 
     }
+
+
 }

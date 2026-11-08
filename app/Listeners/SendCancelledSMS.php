@@ -7,6 +7,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Jobs\SendCancellationSmsJob;
 use App\Models\Event;
+use App\Models\Scopes\PublishedScope;
+
 class SendCancelledSMS
 {
     /**
@@ -22,7 +24,8 @@ class SendCancelledSMS
      */
     public function handle(EventCancelled $event): void
     {
-        $eventDetails = Event::select('id', 'title')
+        $eventDetails = Event::withoutGlobalScope(PublishedScope::class)
+                            ->select('id', 'title')
                             ->with(['bookings' => function ($query) {
                                         $query->select('id', 'user_id', 'event_id', 'status')
                                             ->where('status', 'paid');
