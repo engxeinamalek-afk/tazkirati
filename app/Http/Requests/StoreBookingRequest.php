@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\TicketType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-
+use App\Enums\EventStatus;
 class StoreBookingRequest extends FormRequest
 {
     /**
@@ -25,7 +25,7 @@ class StoreBookingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'event_id' => ['required', 'integer', 'exists:events,id'],
+            'event_id' => ['required', 'integer', Rule::exists('events', 'id')->where('status', EventStatus::PUBLISHED->value)],
             
             'tickets' => ['required', 'array', 'min:1'],
             

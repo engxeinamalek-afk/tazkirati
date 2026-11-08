@@ -136,7 +136,7 @@ class BookingService
         });
     }
     private function checkStatus(Booking $booking){
-        if($booking->status !== BookingStatus::PENDING->value){
+        if($booking->status !== BookingStatus::PENDING){
             throw new InvalidBookingStatusException('You cannot pay for this booking in its current status.');   
         }
     }
